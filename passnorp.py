@@ -14,9 +14,9 @@ def decrypt_data(encrypted_data, key):
     return decrypted_data
 
 # Saving encrypted data to file in append mode
-def save_credentials(login, encrypted_password, filename):
+def save_credentials(encrypted_login, encrypted_password, filename):
     with open(filename, 'ab') as file:
-        line =f"{login}:{encrypted_password}\n"
+        line =f"{encrypted_login.decode()}:{encrypted_password.decode()}\n"
         file.write(line.encode())
 
 # Reading encrypted data from file
@@ -24,8 +24,8 @@ def read_credentials(filename):
     credentials = {}
     with open(filename, 'rb') as file:
         for line in file:
-            login, encrypted_password = line.decode().strip().split(':')
-            credentials[login] = encrypted_password
+            encrypted_login, encrypted_password = line.strip().split(b':')
+            credentials[encrypted_login] = encrypted_password
     return credentials
 
 # Main function with main loop
@@ -48,14 +48,16 @@ def main():
             login = input("Enter login: ")
             password = input("Enter new password: ")
             encrypted_password = encrypt_data(password, key)
-            credentials[login] = encrypted_password
-            save_credentials(login, encrypted_password, 'credentials.txt')
-            print("New password has been added.")
+            encrypted_login = encrypt_data(login, key)
+            credentials[encrypted_login] = encrypted_password
+            save_credentials(encrypted_login, encrypted_password, 'credentials.txt')
+            print("New account has been added.")
 
         elif choice == "2":
-            for login, encrypted_password in credentials.items():
+            for encrypted_login, encrypted_password in read_credentials('credentials.txt').items():
+                decrypted_login = decrypt_data(encrypted_login, key)
                 decrypted_password = decrypt_data(encrypted_password, key)
-                print(f"Login: {login}, Decrypted password:  {decrypted_password}")
+                print(f"Decrypted login: {decrypted_login}, Decrypted password:  {decrypted_password}")
 
         elif choice == "3":
             print("That's enough.")
