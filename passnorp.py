@@ -1,4 +1,5 @@
 from cryptography.fernet import Fernet
+import os
 
 # Data encryption
 def encrypt_data(data, key):
@@ -13,19 +14,24 @@ def decrypt_data(encrypted_data, key):
     return decrypted_data
 
 # Saving encrypted data to file in append mode
-def save_encrypted_data(data, filename):
+def save_credentials(login, encrypted_password, filename):
     with open(filename, 'ab') as file:
-        file.write(data)
+        line =f"{login}:{encrypted_password}\n"
+        file.write(line.encode())
 
 # Reading encrypted data from file
-def read_encrypted_data(filename):
+def read_credentials(filename):
+    credentials = {}
     with open(filename, 'rb') as file:
-        data = file.read()
-    return data
+        for line in file:
+            login, encrypted_password = line.decode().strip().split(':')
+            credentials[login] = encrypted_password
+    return credentials
 
 # Main function with main loop
 def main():
     key = input("Enter key: ").strip()
+    credentials = read_credentials('credentials.txt')
     
     #Deleting unexpected b prefix
     if key.startswith("b'") and key.endswith("'"):
@@ -39,19 +45,25 @@ def main():
         choice = input("Select option: ")
 
         if choice == "1":
+            login = input("Enter login: ")
             password = input("Enter new password: ")
-            encrypted_passwords = encrypt_data(password, key)
-            save_encrypted_data(encrypted_passwords, 'passwords.txt')
+            encrypted_password = encrypt_data(password, key)
+            credentials[login] = encrypted_password
+            save_credentials(login, encrypted_password, 'credentials.txt')
             print("New password has been added.")
 
         elif choice == "2":
-            encrypted_passwords = read_encrypted_data('passwords.txt')
-            decrypted_passwords = decrypt_data(encrypted_passwords, key)
-            print("Decrypted data: ", decrypted_passwords)
+            for login, encrypted_password in credentials.items():
+                decrypted_password = decrypt_data(encrypted_password, key)
+                print(f"Login: {login}, Decrypted password:  {decrypted_password}")
 
         elif choice == "3":
             print("That's enough.")
             break
 
 if __name__ == "__main__":
+    if not os.path.exists('credentials.txt'):
+        with open('credentials.txt', 'w') as file:
+            pass #Touching new file if not exists
+
     main()
