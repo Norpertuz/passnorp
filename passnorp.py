@@ -14,9 +14,9 @@ def decrypt_data(encrypted_data, key):
     return decrypted_data
 
 # Saving encrypted data to file in append mode
-def save_credentials(encrypted_login, encrypted_password, filename):
+def save_credentials(encrypted_account, encrypted_login, encrypted_password, filename):
     with open(filename, 'ab') as file:
-        line =f"{encrypted_login.decode()}:{encrypted_password.decode()}\n"
+        line =f"{encrypted_account.decode()}:{encrypted_login.decode()}:{encrypted_password.decode()}\n"
         file.write(line.encode())
 
 # Reading encrypted data from file
@@ -24,8 +24,8 @@ def read_credentials(filename):
     credentials = {}
     with open(filename, 'rb') as file:
         for line in file:
-            encrypted_login, encrypted_password = line.strip().split(b':')
-            credentials[encrypted_login] = encrypted_password
+            encrypted_account, encrypted_login, encrypted_password = line.strip().split(b':')
+            credentials[encrypted_account] = (encrypted_login, encrypted_password)
     return credentials
 
 # Main function with main loop
@@ -39,25 +39,28 @@ def main():
 
     while True:
         print("Menu:")
-        print("1. Add new password")
-        print("2. Show all passwords")
+        print("1. Add new account")
+        print("2. Show all accounts")
         print("3. Exit")
         choice = input("Select option: ")
 
         if choice == "1":
+            account = input("Enter account: ")
             login = input("Enter login: ")
-            password = input("Enter new password: ")
+            password = input("Enter password: ")
             encrypted_password = encrypt_data(password, key)
+            encrypted_account = encrypt_data(account, key)
             encrypted_login = encrypt_data(login, key)
-            credentials[encrypted_login] = encrypted_password
-            save_credentials(encrypted_login, encrypted_password, 'credentials.txt')
+            credentials[encrypted_account] = (encrypted_login, encrypted_password)
+            save_credentials(encrypted_account, encrypted_login, encrypted_password, 'credentials.txt')
             print("New account has been added.")
 
         elif choice == "2":
-            for encrypted_login, encrypted_password in read_credentials('credentials.txt').items():
+            for encrypted_account, (encrypted_login, encrypted_password) in read_credentials('credentials.txt').items():
+                decrypted_account = decrypt_data(encrypted_account, key)
                 decrypted_login = decrypt_data(encrypted_login, key)
                 decrypted_password = decrypt_data(encrypted_password, key)
-                print(f"Decrypted login: {decrypted_login}, Decrypted password:  {decrypted_password}")
+                print(f"Account: {decrypted_account}, Login: {decrypted_login}, Password:  {decrypted_password}")
 
         elif choice == "3":
             print("That's enough.")
