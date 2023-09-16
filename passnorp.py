@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 from cryptography.fernet import Fernet
+from colorama import init, Fore, Style
 import os
 
 # Data encryption
@@ -29,9 +31,10 @@ def read_credentials(filename):
     return credentials
 
 # Main function with main loop
-def main():
+def main(credentials_file_path):
     key = input("Enter key: ").strip()
-    credentials = read_credentials('credentials.txt')
+
+    credentials = read_credentials(credentials_file_path)
     
     #Deleting unexpected b prefix
     if key.startswith("b'") and key.endswith("'"):
@@ -52,23 +55,29 @@ def main():
             encrypted_account = encrypt_data(account, key)
             encrypted_login = encrypt_data(login, key)
             credentials[encrypted_account] = (encrypted_login, encrypted_password)
-            save_credentials(encrypted_account, encrypted_login, encrypted_password, 'credentials.txt')
+            save_credentials(encrypted_account, encrypted_login, encrypted_password, credentials_file_path)
             print("New account has been added.")
 
         elif choice == "2":
-            for encrypted_account, (encrypted_login, encrypted_password) in read_credentials('credentials.txt').items():
+            #terminal_width = os.get_terminal_size().columns
+            print(Fore.LIGHTRED_EX + "{:<40}{:<40}{:<40}".format("Account", "Login", "Password"))
+            print("="*100)
+            for encrypted_account, (encrypted_login, encrypted_password) in read_credentials(credentials_file_path).items():
                 decrypted_account = decrypt_data(encrypted_account, key)
                 decrypted_login = decrypt_data(encrypted_login, key)
                 decrypted_password = decrypt_data(encrypted_password, key)
-                print(f"Account: {decrypted_account}, Login: {decrypted_login}, Password:  {decrypted_password}")
-
+                #print(f"Account: {decrypted_account}, Login: {decrypted_login}, Password:  {decrypted_password}")
+                print(Fore.YELLOW + "{:<40}{:<40}{:<40}".format(decrypted_account, decrypted_login, decrypted_password) + Style.RESET_ALL)
         elif choice == "3":
             print("That's enough.")
             break
 
 if __name__ == "__main__":
-    if not os.path.exists('credentials.txt'):
-        with open('credentials.txt', 'w') as file:
+    
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    credentials_file_path = os.path.join(current_directory, 'credentials.txt')
+    if not os.path.exists(credentials_file_path):
+        with open(credentials_file_path, 'w') as file:
             pass #Touching new file if not exists
 
-    main()
+    main(credentials_file_path)
