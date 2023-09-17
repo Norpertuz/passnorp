@@ -62,7 +62,7 @@ def main(credentials_file_path):
             #terminal_width = os.get_terminal_size().columns
             print(Fore.LIGHTRED_EX + "{:<40}{:<40}{:<40}".format("Account", "Login", "Password"))
             print("="*100)
-            for encrypted_account, (encrypted_login, encrypted_password) in read_credentials(credentials_file_path).items():
+            for encrypted_account, (encrypted_login, encrypted_password) in sorted(read_credentials(credentials_file_path).items(), key=lambda item: decrypt_data(item[0], key).lower()):
                 decrypted_account = decrypt_data(encrypted_account, key)
                 decrypted_login = decrypt_data(encrypted_login, key)
                 decrypted_password = decrypt_data(encrypted_password, key)
