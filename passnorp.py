@@ -30,6 +30,21 @@ def read_credentials(filename):
             credentials[encrypted_account] = (encrypted_login, encrypted_password)
     return credentials
 
+# Removing selected date from file
+def remove_account(account_name, filename, key):
+    credentials = read_credentials(filename)
+
+    for encrypted_account in credentials:
+        if decrypt_data(encrypted_account, key).lower() == account_name.lower():
+            del credentials[encrypted_account]
+            with open(filename, 'wb') as file:
+                for acc, (login, pwd) in credentials.items():
+                    file.write(f"{acc.decode()}:{login.decode()}:{pwd.decode()}\n".encode())
+            print(f"Account '{account_name}' has been removed.")
+            return
+
+    print(f"Account '{account_name}' not found.")
+
 # Main function with main loop
 def main(credentials_file_path):
     key = input("Enter key: ").strip()
@@ -44,7 +59,8 @@ def main(credentials_file_path):
         print("Menu:")
         print("1. Add new account")
         print("2. Show all accounts")
-        print("3. Exit")
+        print("3. Remove an account")
+        print("4. Exit")
         choice = input("Select option: ")
 
         if choice == "1":
@@ -68,7 +84,12 @@ def main(credentials_file_path):
                 decrypted_password = decrypt_data(encrypted_password, key)
                 #print(f"Account: {decrypted_account}, Login: {decrypted_login}, Password:  {decrypted_password}")
                 print(Fore.YELLOW + "{:<40}{:<40}{:<40}".format(decrypted_account, decrypted_login, decrypted_password) + Style.RESET_ALL)
+
         elif choice == "3":
+            account_name = input("Enter account name to remove: ")
+            remove_account(account_name, credentials_file_path, key)
+
+        elif choice == "4":
             print("That's enough.")
             break
 
